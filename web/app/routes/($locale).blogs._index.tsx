@@ -1,16 +1,17 @@
-import {Link, useLoaderData} from 'react-router';
-import type {Route} from './+types/blogs._index';
+import {Link, useLoaderData, type LoaderFunctionArgs, type MetaFunction} from 'react-router';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import type {BlogsQuery} from 'storefrontapi.generated';
 
 type BlogNode = BlogsQuery['blogs']['nodes'][0];
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Blogs`}];
+export const meta: MetaFunction<typeof loader> = ({matches}) => {
+  const rootData = matches.find((match) => match.id === 'root')?.data;
+  const siteTitle = rootData?.settings?.title ?? 'Luneva';
+  return [{title: `${siteTitle} | Blogs`}];
 };
 
-export async function loader(args: Route.LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 

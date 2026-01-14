@@ -1,10 +1,9 @@
-import {useLoaderData, Link} from 'react-router';
-import type {Route} from './+types/collections._index';
+import {useLoaderData, Link, type LoaderFunctionArgs} from 'react-router';
 import {getPaginationVariables, Image} from '@shopify/hydrogen';
 import type {CollectionFragment} from 'storefrontapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 
-export async function loader(args: Route.LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 
@@ -18,7 +17,7 @@ export async function loader(args: Route.LoaderArgs) {
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context, request}: Route.LoaderArgs) {
+async function loadCriticalData({context, request}: LoaderFunctionArgs) {
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 4,
   });
@@ -38,7 +37,7 @@ async function loadCriticalData({context, request}: Route.LoaderArgs) {
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context}: Route.LoaderArgs) {
+function loadDeferredData({context}: LoaderFunctionArgs) {
   return {};
 }
 
@@ -50,7 +49,7 @@ export default function Collections() {
       <h1>Collections</h1>
       <PaginatedResourceSection<CollectionFragment>
         connection={collections}
-        resourcesClassName="collections-grid"
+        resourcesClassName="grid gap-6 grid-cols-[repeat(auto-fit,minmax(355px,1fr))] mb-8"
       >
         {({node: collection, index}) => (
           <CollectionItem
@@ -85,6 +84,7 @@ function CollectionItem({
           data={collection.image}
           loading={index < 3 ? 'eager' : undefined}
           sizes="(min-width: 45em) 400px, 100vw"
+          className="h-auto rounded"
         />
       )}
       <h5>{collection.title}</h5>

@@ -1,12 +1,13 @@
-import {useLoaderData} from 'react-router';
-import type {Route} from './+types/pages.$handle';
+import {useLoaderData, type LoaderFunctionArgs, type MetaFunction} from 'react-router';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
-export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.page.title ?? ''}`}];
+export const meta: MetaFunction<typeof loader> = ({data, matches}) => {
+  const rootData = matches.find((match) => match.id === 'root')?.data;
+  const siteTitle = rootData?.settings?.title ?? 'Luneva';
+  return [{title: `${siteTitle} | ${data?.page.title ?? ''}`}];
 };
 
-export async function loader(args: Route.LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 

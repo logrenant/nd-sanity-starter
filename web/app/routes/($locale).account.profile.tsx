@@ -7,25 +7,27 @@ import {
   useActionData,
   useNavigation,
   useOutletContext,
+  type MetaFunction,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
 } from 'react-router';
-import type {Route} from './+types/account.profile';
 
 export type ActionResponse = {
   error: string | null;
   customer: CustomerFragment | null;
 };
 
-export const meta: Route.MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [{title: 'Profile'}];
 };
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context}: LoaderFunctionArgs) {
   context.customerAccount.handleAuthStatus();
 
   return {};
 }
 
-export async function action({request, context}: Route.ActionArgs) {
+export async function action({request, context}: ActionFunctionArgs) {
   const {customerAccount} = context;
 
   if (request.method !== 'PUT') {

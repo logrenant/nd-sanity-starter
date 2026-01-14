@@ -3,6 +3,7 @@ import type {CartLayout} from '~/components/CartMain';
 import {CartForm, Image, type OptimisticCartLine} from '@shopify/hydrogen';
 import {useVariantUrl} from '~/lib/variants';
 import {Link} from 'react-router';
+import {motion} from 'framer-motion';
 import {ProductPrice} from './ProductPrice';
 import {useAside} from './Aside';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
@@ -26,19 +27,33 @@ export function CartLineItem({
   const {close} = useAside();
 
   return (
-    <li key={id} className="cart-line">
+    <motion.li 
+      key={id} 
+      className="flex gap-4 py-4 px-4 rounded-lg border border-neutral-200 bg-white/50 hover:bg-white hover:border-neutral-400 transition-all duration-300 mb-3"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+    >
       {image && (
-        <Image
-          alt={title}
-          aspectRatio="1/1"
-          data={image}
-          height={100}
-          loading="lazy"
-          width={100}
-        />
+        <motion.div 
+          className="relative rounded-lg overflow-hidden shrink-0 border border-neutral-200 h-24 w-24 flex items-center justify-center bg-white"
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+        >
+          <Image
+            alt={title}
+            aspectRatio="1/1"
+            data={image}
+            height={100}
+            loading="lazy"
+            width={100}
+            className="w-full h-full object-contain p-1"
+          />
+        </motion.div>
       )}
 
-      <div>
+      <div className="flex-1 flex flex-col gap-2 min-w-0">
         <Link
           prefetch="intent"
           to={lineItemUrl}
@@ -47,24 +62,28 @@ export function CartLineItem({
               close();
             }
           }}
+          className="no-underline hover:opacity-70 transition-opacity"
         >
-          <p>
-            <strong>{product.title}</strong>
+          <p className="m-0 font-semibold text-sm md:text-base text-neutral-900 line-clamp-2">
+            {product.title}
           </p>
         </Link>
-        <ProductPrice price={line?.cost?.totalAmount} />
-        <ul>
+        
+        <div className="flex items-center justify-between">
+          <ProductPrice price={line?.cost?.totalAmount} />
+        </div>
+
+        <ul className="m-0 p-0 list-none space-y-1">
           {selectedOptions.map((option) => (
-            <li key={option.name}>
-              <small>
-                {option.name}: {option.value}
-              </small>
+            <li key={option.name} className="text-xs text-neutral-500">
+              <span className="font-medium">{option.name}:</span> {option.value}
             </li>
           ))}
         </ul>
+
         <CartLineQuantity line={line} />
       </div>
-    </li>
+    </motion.li>
   );
 }
 
@@ -80,30 +99,42 @@ function CartLineQuantity({line}: {line: CartLine}) {
   const nextQuantity = Number((quantity + 1).toFixed(0));
 
   return (
-    <div className="cart-line-quantity">
-      <small>Quantity: {quantity} &nbsp;&nbsp;</small>
-      <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
-        <button
-          aria-label="Decrease quantity"
-          disabled={quantity <= 1 || !!isOptimistic}
-          name="decrease-quantity"
-          value={prevQuantity}
-        >
-          <span>&#8722; </span>
-        </button>
-      </CartLineUpdateButton>
-      &nbsp;
-      <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
-        <button
-          aria-label="Increase quantity"
-          name="increase-quantity"
-          value={nextQuantity}
-          disabled={!!isOptimistic}
-        >
-          <span>&#43;</span>
-        </button>
-      </CartLineUpdateButton>
-      &nbsp;
+    <div className="flex items-center gap-2 mt-2">
+      <span className="text-xs font-medium text-neutral-600">Qty:</span>
+      <div className="flex items-center gap-1 border border-neutral-200 rounded-lg p-1 bg-white">
+        <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
+          <motion.button
+            aria-label="Decrease quantity"
+            disabled={quantity <= 1 || !!isOptimistic}
+            name="decrease-quantity"
+            value={prevQuantity}
+            className="h-6 w-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="text-sm">−</span>
+          </motion.button>
+        </CartLineUpdateButton>
+        
+        <span className="w-6 text-center text-xs font-semibold text-neutral-900">
+          {quantity}
+        </span>
+        
+        <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
+          <motion.button
+            aria-label="Increase quantity"
+            name="increase-quantity"
+            value={nextQuantity}
+            disabled={!!isOptimistic}
+            className="h-6 w-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="text-sm">+</span>
+          </motion.button>
+        </CartLineUpdateButton>
+      </div>
+      
       <CartLineRemoveButton lineIds={[lineId]} disabled={!!isOptimistic} />
     </div>
   );
@@ -128,9 +159,15 @@ function CartLineRemoveButton({
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
-      <button disabled={disabled} type="submit">
+      <motion.button 
+        disabled={disabled} 
+        type="submit"
+        className="ml-auto text-xs font-medium text-neutral-500 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
         Remove
-      </button>
+      </motion.button>
     </CartForm>
   );
 }

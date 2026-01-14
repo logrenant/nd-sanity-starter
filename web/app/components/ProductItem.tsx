@@ -6,6 +6,7 @@ import type {
   RecommendedProductFragment,
 } from 'storefrontapi.generated';
 import {useVariantUrl} from '~/lib/variants';
+import UpArrow from './svg/UpArrow';
 
 export function ProductItem({
   product,
@@ -26,19 +27,27 @@ export function ProductItem({
       prefetch="intent"
       to={variantUrl}
     >
-      {image && (
-        <Image
-          alt={image.altText || product.title}
-          aspectRatio="1/1"
-          data={image}
-          loading={loading}
-          sizes="(min-width: 45em) 400px, 100vw"
-        />
-      )}
-      <h4>{product.title}</h4>
-      <small>
+      <div className='bg-gray-200 rounded-lg p-2 flex flex-col gap-2'>
+        <div className='flex flex-row justify-between items-center '>
+          <h4 className='text-sm'>{product.title}</h4>
+          <div className='h-8 w-8 flex items-center justify-center bg-white rounded-lg'>
+            <UpArrow />
+          </div>
+        </div>
+        {image && (
+          <Image
+            alt={image.altText || product.title}
+            aspectRatio="1/2"
+            data={image}
+            loading={loading}
+            sizes="(min-width: 45em) 400px, 100vw"
+            className="h-auto w-full rounded-lg"
+          />
+        )}
+      </div>
+      {/* <small>
         <Money data={product.priceRange.minVariantPrice} />
-      </small>
+      </small> */}
     </Link>
   );
 }

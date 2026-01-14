@@ -1,8 +1,7 @@
-import {redirect} from 'react-router';
-import type {Route} from './+types/account.$';
+import {redirect, type LoaderFunctionArgs} from 'react-router';
 
 // fallback wild card for all unauthenticated routes in account section
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context}: LoaderFunctionArgs) {
   context.customerAccount.handleAuthStatus();
 
   return redirect('/account');

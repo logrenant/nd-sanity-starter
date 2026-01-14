@@ -1,5 +1,4 @@
-import {redirect, useLoaderData} from 'react-router';
-import type {Route} from './+types/products.$handle';
+import {redirect, useLoaderData, type LoaderFunctionArgs, type MetaFunction} from 'react-router';
 import {
   getSelectedProductOptions,
   Analytics,
@@ -13,9 +12,11 @@ import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
-export const meta: Route.MetaFunction = ({data}) => {
+export const meta: MetaFunction<typeof loader> = ({data, matches}) => {
+  const rootData = matches.find((match) => match.id === 'root')?.data;
+  const siteTitle = rootData?.settings?.title ?? 'Luneva';
   return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
+    {title: `${siteTitle} | ${data?.product.title ?? ''}`},
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,
@@ -23,7 +24,7 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 
@@ -37,7 +38,7 @@ export async function loader(args: Route.LoaderArgs) {
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
+async function loadCriticalData({context, params, request}: LoaderFunctionArgs) {
   const {handle} = params;
   const {storefront} = context;
 
@@ -98,10 +99,10 @@ export default function Product() {
   const {title, descriptionHtml} = product;
 
   return (
-    <div className="product">
+    <div className="w-full py-24 px-4 md:px-16 grid grid-cols-1 md:grid-cols-2 gap-12">
       <ProductImage image={selectedVariant?.image} />
-      <div className="product-main">
-        <h1>{title}</h1>
+      <div className="flex flex-col gap-6 sticky top-32 self-start">
+        <h1 className="text-4xl font-bold">{title}</h1>
         <ProductPrice
           price={selectedVariant?.price}
           compareAtPrice={selectedVariant?.compareAtPrice}
@@ -111,14 +112,12 @@ export default function Product() {
           productOptions={productOptions}
           selectedVariant={selectedVariant}
         />
-        <br />
-        <br />
-        <p>
-          <strong>Description</strong>
-        </p>
-        <br />
-        <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        <br />
+        <div className="prose dark:prose-invert">
+          <p>
+            <strong>Description</strong>
+          </p>
+          <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
+        </div>
       </div>
       <Analytics.ProductView
         data={{
