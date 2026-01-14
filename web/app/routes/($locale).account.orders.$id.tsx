@@ -1,5 +1,4 @@
-import {redirect, useLoaderData} from 'react-router';
-import type {Route} from './+types/account.orders.$id';
+import {redirect, useLoaderData, type LoaderFunctionArgs, type MetaFunction} from 'react-router';
 import {Money, Image} from '@shopify/hydrogen';
 import type {
   OrderLineItemFullFragment,
@@ -7,11 +6,11 @@ import type {
 } from 'customer-accountapi.generated';
 import {CUSTOMER_ORDER_QUERY} from '~/graphql/customer-account/CustomerOrderQuery';
 
-export const meta: Route.MetaFunction = ({data}) => {
+export const meta: MetaFunction<typeof loader> = ({data}) => {
   return [{title: `Order ${data?.order?.name}`}];
 };
 
-export async function loader({params, context}: Route.LoaderArgs) {
+export async function loader({params, context}: LoaderFunctionArgs) {
   const {customerAccount} = context;
   if (!params.id) {
     return redirect('/account/orders');

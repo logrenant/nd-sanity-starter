@@ -1,5 +1,4 @@
-import {Link, useLoaderData} from 'react-router';
-import type {Route} from './+types/policies.$handle';
+import {Link, useLoaderData, type LoaderFunctionArgs, type MetaFunction} from 'react-router';
 import {type Shop} from '@shopify/hydrogen/storefront-api-types';
 
 type SelectedPolicies = keyof Pick<
@@ -7,11 +6,13 @@ type SelectedPolicies = keyof Pick<
   'privacyPolicy' | 'shippingPolicy' | 'termsOfService' | 'refundPolicy'
 >;
 
-export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.policy.title ?? ''}`}];
+export const meta: MetaFunction<typeof loader> = ({data, matches}) => {
+  const rootData = matches.find((match) => match.id === 'root')?.data;
+  const siteTitle = rootData?.settings?.title ?? 'Luneva';
+  return [{title: `${siteTitle} | ${data?.policy.title ?? ''}`}];
 };
 
-export async function loader({params, context}: Route.LoaderArgs) {
+export async function loader({params, context}: LoaderFunctionArgs) {
   if (!params.handle) {
     throw new Response('No handle was passed in', {status: 404});
   }

@@ -10,8 +10,10 @@ import {
   useNavigation,
   useOutletContext,
   type Fetcher,
+  type MetaFunction,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
 } from 'react-router';
-import type {Route} from './+types/account.addresses';
 import {
   UPDATE_ADDRESS_MUTATION,
   DELETE_ADDRESS_MUTATION,
@@ -27,17 +29,17 @@ export type ActionResponse = {
   updatedAddress?: AddressFragment;
 };
 
-export const meta: Route.MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [{title: 'Addresses'}];
 };
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context}: LoaderFunctionArgs) {
   context.customerAccount.handleAuthStatus();
 
   return {};
 }
 
-export async function action({request, context}: Route.ActionArgs) {
+export async function action({request, context}: ActionFunctionArgs) {
   const {customerAccount} = context;
 
   try {

@@ -1,4 +1,6 @@
 import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
+import {useEffect} from 'react';
+import Lenis from 'lenis';
 import {
   Outlet,
   useRouteError,
@@ -9,16 +11,40 @@ import {
   Scripts,
   ScrollRestoration,
   useRouteLoaderData,
+  type MetaFunction,
+  type LoaderFunctionArgs,
 } from 'react-router';
-import type {Route} from './+types/root';
 import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
+import {getFooter, getHeader, getSettings} from '~/lib/sanity-queries';
 import resetStyles from '~/styles/reset.css?url';
 import appStyles from '~/styles/app.css?url';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
+import type {SanitySettings} from './lib/sanity-types';
+import {SettingsProvider} from '~/lib/settings-context';
 
 export type RootLoader = typeof loader;
+
+export const meta: MetaFunction<typeof loader> = ({data}) => {
+  const title = data?.settings?.title ?? 'Luneva';
+  const description = data?.settings?.description ?? '';
+  const imageUrl = data?.settings?.ogImage?.asset?.url;
+  
+  return [
+    {title},
+    {name: 'description', content: description},
+    {property: 'og:site_name', content: title},
+    {property: 'og:title', content: title},
+    {property: 'og:description', content: description},
+    {property: 'og:type', content: 'website'},
+    ...(imageUrl ? [{property: 'og:image', content: imageUrl}] : []),
+    {name: 'twitter:card', content: 'summary_large_image'},
+    {name: 'twitter:title', content: title},
+    {name: 'twitter:description', content: description},
+    ...(imageUrl ? [{name: 'twitter:image', content: imageUrl}] : []),
+  ];
+};
 
 /**
  * This is important to avoid re-fetching root queries on sub-navigations
@@ -62,11 +88,10 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
-    {rel: 'icon', type: 'image/svg+xml', href: favicon},
   ];
 }
 
-export async function loader(args: Route.LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 
@@ -99,19 +124,26 @@ export async function loader(args: Route.LoaderArgs) {
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
 async function loadCriticalData({context}: Route.LoaderArgs) {
-  const {storefront} = context;
+  const {storefront, sanity} = context;
 
-  const [header] = await Promise.all([
+  const [header, sanityHeader, settings] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: {
         headerMenuHandle: 'main-menu', // Adjust to your header menu handle
       },
     }),
-    // Add other queries here, so that they are loaded in parallel
+    getHeader(sanity).catch((error) => {
+      console.error(error);
+      return null;
+    }),
+    getSettings(sanity).catch((error) => {
+      console.error(error);
+      return null;
+    }),
   ]);
 
-  return {header};
+  return {header, sanityHeader, settings};
 }
 
 /**
@@ -135,15 +167,42 @@ function loadDeferredData({context}: Route.LoaderArgs) {
       console.error(error);
       return null;
     });
+
+  const sanityFooter = getFooter(context.sanity).catch((error) => {
+    console.error(error);
+    return null;
+  });
+
   return {
     cart: cart.get(),
     isLoggedIn: customerAccount.isLoggedIn(),
     footer,
+    sanityFooter,
   };
 }
 
+import {ThemeProvider} from '~/components/ThemeProvider';
+
 export function Layout({children}: {children?: React.ReactNode}) {
   const nonce = useNonce();
+  const data = useRouteLoaderData<RootLoader>('root');
+  const settings = data?.settings;
+  const faviconUrl = settings?.favicon?.asset?.url || favicon;
+
+  useEffect(() => {
+    const lenis = new Lenis();
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
 
   return (
     <html lang="en">
@@ -155,9 +214,12 @@ export function Layout({children}: {children?: React.ReactNode}) {
         <link rel="stylesheet" href={appStyles}></link>
         <Meta />
         <Links />
+        <link rel="icon" type="image/svg+xml" href={faviconUrl} />
       </head>
-      <body>
-        {children}
+      <body className="flex flex-col min-h-screen" style={{fontFamily: 'var(--font-primary)'}}>
+        <ThemeProvider settings={settings} nonce={nonce}>
+          {children}
+        </ThemeProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
@@ -173,15 +235,17 @@ export default function App() {
   }
 
   return (
-    <Analytics.Provider
-      cart={data.cart}
-      shop={data.shop}
-      consent={data.consent}
-    >
-      <PageLayout {...data}>
-        <Outlet />
-      </PageLayout>
-    </Analytics.Provider>
+    <SettingsProvider settings={data.settings}>
+      <Analytics.Provider
+        cart={data.cart}
+        shop={data.shop}
+        consent={data.consent}
+      >
+        <PageLayout {...data}>
+          <Outlet />
+        </PageLayout>
+      </Analytics.Provider>
+    </SettingsProvider>
   );
 }
 

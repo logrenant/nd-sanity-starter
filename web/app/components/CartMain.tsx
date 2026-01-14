@@ -1,5 +1,6 @@
 import {useOptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
+import {motion} from 'framer-motion';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 import {CartLineItem} from '~/components/CartLineItem';
@@ -25,22 +26,27 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const withDiscount =
     cart &&
     Boolean(cart?.discountCodes?.filter((code) => code.applicable)?.length);
-  const className = `cart-main ${withDiscount ? 'with-discount' : ''}`;
+  const className = `flex flex-col w-auto h-full ${withDiscount ? '' : ''}`;
   const cartHasItems = cart?.totalQuantity ? cart.totalQuantity > 0 : false;
 
   return (
     <div className={className}>
       <CartEmpty hidden={linesCount} layout={layout} />
-      <div className="cart-details">
-        <div aria-labelledby="cart-lines">
-          <ul>
+      <motion.div 
+        className="flex flex-col h-full overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div aria-labelledby="cart-lines" className="flex-1 overflow-y-auto min-h-0">
+          <ul className="list-none m-0 pt-4 space-y-6">
             {(cart?.lines?.nodes ?? []).map((line) => (
               <CartLineItem key={line.id} line={line} layout={layout} />
             ))}
           </ul>
         </div>
         {cartHasItems && <CartSummary cart={cart} layout={layout} />}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -53,16 +59,25 @@ function CartEmpty({
 }) {
   const {close} = useAside();
   return (
-    <div hidden={hidden}>
-      <br />
-      <p>
-        Looks like you haven&rsquo;t added anything yet, let&rsquo;s get you
-        started!
+    <motion.div 
+      hidden={hidden}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center justify-center py-12 text-center"
+    >
+      <div className="text-4xl mb-4">🛍️</div>
+      <p className="text-neutral-600 mb-4 text-sm">
+        Your cart is empty. Let's add something amazing!
       </p>
-      <br />
-      <Link to="/collections" onClick={close} prefetch="viewport">
-        Continue shopping →
+      <Link 
+        to="/collections" 
+        onClick={close} 
+        prefetch="viewport"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 text-white rounded-lg font-medium text-sm hover:bg-neutral-800 transition-colors no-underline"
+      >
+        Continue Shopping →
       </Link>
-    </div>
+    </motion.div>
   );
 }

@@ -39,7 +39,7 @@ function SearchResultsArticles({
   }
 
   return (
-    <div className="search-result">
+    <div className="mb-6">
       <h2>Articles</h2>
       <div>
         {articles?.nodes?.map((article) => {
@@ -50,8 +50,8 @@ function SearchResultsArticles({
           });
 
           return (
-            <div className="search-results-item" key={article.id}>
-              <Link prefetch="intent" to={articleUrl}>
+            <div className="mb-2" key={article.id}>
+              <Link prefetch="intent" to={articleUrl} className="flex flex-row items-center gap-4">
                 {article.title}
               </Link>
             </div>
@@ -69,7 +69,7 @@ function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
   }
 
   return (
-    <div className="search-result">
+    <div className="mb-6">
       <h2>Pages</h2>
       <div>
         {pages?.nodes?.map((page) => {
@@ -80,8 +80,8 @@ function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
           });
 
           return (
-            <div className="search-results-item" key={page.id}>
-              <Link prefetch="intent" to={pageUrl}>
+            <div className="mb-2" key={page.id}>
+              <Link prefetch="intent" to={pageUrl} className="flex flex-row items-center gap-4">
                 {page.title}
               </Link>
             </div>
@@ -102,7 +102,7 @@ function SearchResultsProducts({
   }
 
   return (
-    <div className="search-result">
+    <div className="mb-6">
       <h2>Products</h2>
       <Pagination connection={products}>
         {({nodes, isLoading, NextLink, PreviousLink}) => {
@@ -117,8 +117,8 @@ function SearchResultsProducts({
             const image = product?.selectedOrFirstAvailableVariant?.image;
 
             return (
-              <div className="search-results-item" key={product.id}>
-                <Link prefetch="intent" to={productUrl}>
+              <div className="mb-2" key={product.id}>
+                <Link prefetch="intent" to={productUrl} className="flex flex-row items-center gap-4">
                   {image && (
                     <Image data={image} alt={product.title} width={50} />
                   )}

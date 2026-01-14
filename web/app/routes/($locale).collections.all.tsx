@@ -1,15 +1,16 @@
-import type {Route} from './+types/collections.all';
-import {useLoaderData} from 'react-router';
+import {useLoaderData, type MetaFunction, type LoaderFunctionArgs} from 'react-router';
 import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {ProductItem} from '~/components/ProductItem';
+import {CollectionProductCard} from '~/components/CollectionProductCard';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Products`}];
+export const meta: MetaFunction = ({matches}) => {
+  const rootData = matches.find((match) => match.id === 'root')?.data;
+  const siteTitle = (rootData as any)?.settings?.title ?? 'Luneva';
+  return [{title: `${siteTitle} | Products`}];
 };
 
-export async function loader(args: Route.LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 
@@ -23,10 +24,10 @@ export async function loader(args: Route.LoaderArgs) {
  * Load data necessary for rendering content above the fold. This is the critical data
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  */
-async function loadCriticalData({context, request}: Route.LoaderArgs) {
+async function loadCriticalData({context, request}: LoaderFunctionArgs) {
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: 9,
   });
 
   const [{products}] = await Promise.all([
@@ -43,7 +44,7 @@ async function loadCriticalData({context, request}: Route.LoaderArgs) {
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData({context}: Route.LoaderArgs) {
+function loadDeferredData({context}: LoaderFunctionArgs) {
   return {};
 }
 
@@ -51,17 +52,17 @@ export default function Collection() {
   const {products} = useLoaderData<typeof loader>();
 
   return (
-    <div className="collection">
-      <h1>Products</h1>
+    <div className="w-full py-24 px-4 md:px-16">
+      <h1 className="text-4xl font-bold mb-8">Products</h1>
       <PaginatedResourceSection<CollectionItemFragment>
         connection={products}
-        resourcesClassName="products-grid"
+        resourcesClassName="grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8"
       >
         {({node: product, index}) => (
-          <ProductItem
+          <CollectionProductCard
             key={product.id}
             product={product}
-            loading={index < 8 ? 'eager' : undefined}
+            loading={index < 9 ? 'eager' : undefined}
           />
         )}
       </PaginatedResourceSection>

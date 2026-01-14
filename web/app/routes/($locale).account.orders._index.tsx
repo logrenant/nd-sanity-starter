@@ -3,8 +3,8 @@ import {
   useLoaderData,
   useNavigation,
   useSearchParams,
+  type LoaderFunctionArgs,
 } from 'react-router';
-import type {Route} from './+types/account.orders._index';
 import {useRef} from 'react';
 import {
   Money,
@@ -33,7 +33,7 @@ export const meta: Route.MetaFunction = () => {
   return [{title: 'Orders'}];
 };
 
-export async function loader({request, context}: Route.LoaderArgs) {
+export async function loader({request, context}: LoaderFunctionArgs) {
   const {customerAccount} = context;
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 20,
@@ -152,20 +152,20 @@ function OrderSearchForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="order-search-form"
+      className="mb-6"
       aria-label="Search orders"
     >
-      <fieldset className="order-search-fieldset">
-        <legend className="order-search-legend">Filter Orders</legend>
+      <fieldset className="border border-[#e5e5e5] rounded p-4">
+        <legend className="font-semibold px-2">Filter Orders</legend>
 
-        <div className="order-search-inputs">
+        <div className="grid gap-4 mt-1 mb-4 grid-cols-1 sm:grid-cols-2">
           <input
             type="search"
             name={ORDER_FILTER_FIELDS.NAME}
             placeholder="Order #"
             aria-label="Order number"
             defaultValue={currentFilters.name || ''}
-            className="order-search-input"
+            className="w-full p-2 border border-gray-300 rounded text-base"
           />
           <input
             type="search"
@@ -173,11 +173,11 @@ function OrderSearchForm({
             placeholder="Confirmation #"
             aria-label="Confirmation number"
             defaultValue={currentFilters.confirmationNumber || ''}
-            className="order-search-input"
+            className="w-full p-2 border border-gray-300 rounded text-base"
           />
         </div>
 
-        <div className="order-search-buttons">
+        <div className="flex gap-3 flex-wrap">
           <button type="submit" disabled={isSearching}>
             {isSearching ? 'Searching' : 'Search'}
           </button>
